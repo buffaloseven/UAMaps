@@ -91,11 +91,11 @@ def main():
     if (opt.cwd):
         path_root = getcwd()
     else:
-        path_root = Path.home().as_posix() + "/UAMaps/"
+        path_root = Path.home().as_posix() + "/UAMaps"
 
     station_file = path_root + '/ua_station_list.csv'
     # Change the string to choose where to save the file.
-    save_dir = path_root + '/maps/'
+    save_dir = path_root + '/maps'
     dt = datetime.strptime(input_date.strftime(
         '%Y%m%d') + str(hour), '%Y%m%d%H')
     # Go back 6 hours to for 18z Objective Analysis.
@@ -118,13 +118,14 @@ def main():
 
     # Completed the image production, now check for JSON output and create if needed.
     if (opt.write_json):
+        print("Generating JSON output...")
         json = generate_json_data(dt, levels, save_dir)
     print('Process Complete..... Total time = {}s'.format(total_time))
 
     # Create the combined output PDF if requested
     if (opt.combine_pdf is True):
         print(
-            f'\tCreating PDF for the following images: {str(generated_maps)}')
+            f'Creating PDF for the following images: {str(generated_maps)}')
         images = []
         for f in generated_maps:
             png = Image.open(f)

@@ -373,12 +373,7 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
                               central_latitude=90., globe=globe,
                               true_scale_latitude=60)
     # Plot the image
-    if (smaller_images is True):
-        # At DPI = 255 the result is a 3,060 x 3,060 image.
-        fig = plt.figure(figsize=(12, 12))
-    else:
-        # At DPI = 255 the result is a 7,650 x 7,650 image.
-        fig = plt.figure(figsize=(30, 30))
+    fig = plt.figure(figsize=(30, 30))
     ax = fig.add_subplot(1, 1, 1, projection=proj)
     state_boundaries = feat.NaturalEarthFeature(category='cultural',
                                                 name='admin_1_states_provinces_lines',
@@ -515,7 +510,10 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
             for c in cs3.collections:
                 c.set_dashes([(0, (5.0, 3.0))])
 
-    dpi = plt.rcParams['savefig.dpi'] = 255
+    if (smaller_images):
+        dpi = plt.rcParams['savefig.dpi'] = 96
+    else:
+        dpi = plt.rcParams['savefig.dpi'] = 255
     text = AnchoredText(str(level) + 'mb Wind, Heights, ' + temps +
                         ' Valid: {0:%Y-%m-%d} {0:%H}:00 UTC'.format(date), loc=3, frameon=True, prop=dict(fontsize=30))
     ax.add_artist(text)

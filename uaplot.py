@@ -39,6 +39,7 @@ def main():
     parser.add_option("--te", "--te",dest='te', action="store_true", help="Plot Theta-e instead of temperatures for 925/850/700 mb", default=False)
     parser.add_option("--levels", "--levels",dest='levels',type="str", help="Levels in which to plot. Use levels=850,500 to plot specific levels. This option is not required to plot all levels (250, 300, 500, 700, 850, 925).", default='All')
     parser.add_option("--compress_output", "--compress_output", dest="compress",action="store_true", help="Compress the output PNGs when saving; will add extra to the runtime.", default=False)
+    parser.add_option("--small_images", "--small_images",dest='small_images', action="store_true", help="Reduce the resolution of the output images.", default=False)
     (opt, arg) = parser.parse_args()
 
     if  opt.latest == False and opt.date == False:
@@ -75,7 +76,7 @@ def main():
     for level in levels:
         print ("    Processing {}...".format(level))
         data = generateData(uadata, stations, level)
-        uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress)
+        uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress, opt.small_images)
     end = time.time()
     total_time = round(end-start, 2)
     print('Process Complete..... Total time = {}s'.format(total_time))
@@ -232,7 +233,7 @@ def mapbackground():
     return ax
 
 
-def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress):
+def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, make_smaller_images):
 
     custom_layout = StationPlotLayout()
     custom_layout.add_barb('eastward_wind', 'northward_wind', units='knots')
@@ -313,11 +314,12 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
                                central_latitude=90., globe=globe,
                                true_scale_latitude=60)
     # Plot the image
-    fig = plt.figure(figsize=(30, 30))
+    if (make_smaller_images is True):
+        fig = plt.figure(figsize=(12, 12))
+    else:
+        fig = plt.figure(figsize=(30, 30))
     ax = fig.add_subplot(1, 1, 1, projection=proj)
-    state_boundaries = feat.NaturalEarthFeature(category='cultural',
-                                            name='admin_1_states_provinces_lines',
-                                            scale='10m', facecolor='none')
+    state_boundaries = feat.NaturalEarthFeature(category='cultural', name='admin_1_states_provinces_lines', scale='10m', facecolor='none')
     coastlines = feat.NaturalEarthFeature('physical', 'coastline', '50m', facecolor='none')
     lakes = feat.NaturalEarthFeature('physical', 'lakes', '50m', facecolor='none')
     countries = feat.NaturalEarthFeature('cultural', 'admin_0_countries', '50m', facecolor='none')

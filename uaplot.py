@@ -62,6 +62,8 @@ def main():
                       help="Enable to output JSON file with references to the latest and archived image files.", default=False)
     parser.add_option("--smaller-images", "--smaller-images", dest='smaller_images', action="store_true",
                       help="Reduce the output resolution of the generated images.", default=False)
+    parser.add_option("--combine-pdf", "--combine-pdf", dest='combine_pdf', action="store_true",
+                      help="Create a PDF containing all the generated images.", default=False)
 
     (opt, arg) = parser.parse_args()
 
@@ -108,8 +110,8 @@ def main():
     for level in levels:
         print("    Processing {}...".format(level))
         data = generateData(uadata, stations, level)
-        uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress,
-               opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images)
+        map = uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress,
+                     opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images)
         generated_maps.append(map)
     end = time.time()
     total_time = round(end-start, 2)
@@ -118,6 +120,14 @@ def main():
     if (opt.write_json):
         json = generate_json_data(dt, levels, save_dir)
     print('Process Complete..... Total time = {}s'.format(total_time))
+
+    # Create the combined output PDF if requested
+    if (opt.combine_pdf is True):
+        images = [Image.open(f) for f in generated_maps]
+        pdf = save_dir + "/" + '{0:%Y%m%d_%H}Z'.format(dt) + "_all.pdf"
+        images[0].save(
+            pdf, "PDF", resolution=100.0, save_all=True, append_images=images[1:]
+        )
 
 
 def getData(station_file, date, hh):
@@ -544,6 +554,7 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
             im2.thumbnail((thumbnail_size, thumbnail_size), Image.ANTIALIAS)
             im2.save(save_dir + "/" + thumb_fname, format='PNG', optimize=True)
     print('        Image saved.')
+    return f'{save_dir}/{save_fname}'
     # plt.show()
 
 

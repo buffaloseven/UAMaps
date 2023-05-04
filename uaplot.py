@@ -126,7 +126,12 @@ def main():
     if (opt.combine_pdf is True):
         print(
             f'Creating PDF for the following images: {str(generated_maps)}')
-        images = [Image.open(f) for f in generated_maps]
+        images = []
+        for f in generated_maps:
+            im = Image.open(f)
+            im2 = im.convert("P", palette=Image.ADAPTIVE,
+                             colors=opt.png_colors)
+            images.append(im2)
 
         pdf = save_dir + "/" + '{0:%Y%m%d_%H}Z'.format(dt) + "_all.pdf"
         images[0].save(

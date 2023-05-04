@@ -130,7 +130,7 @@ def main():
         for f in generated_maps:
             im = Image.open(f)
             im2 = im.convert("P", palette=Image.ADAPTIVE,
-                             colors=opt.png_colors)
+                             colors=opt.png_colours)
             images.append(im2)
 
         pdf = save_dir + "/" + '{0:%Y%m%d_%H}Z'.format(dt) + "_all.pdf"

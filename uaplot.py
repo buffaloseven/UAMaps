@@ -128,7 +128,7 @@ def main():
             f'Creating PDF for the following images: {str(generated_maps)}')
         images = []
         for f in generated_maps:
-            im = Image.open(f).convert("RGB")
+            im = Image.open(f).convert("RGB", optimize=True)
             images.append(im)
 
         pdf = save_dir + "/" + '{0:%Y%m%d_%H}Z'.format(dt) + "_all.pdf"

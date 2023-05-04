@@ -5,7 +5,7 @@ from os import getcwd
 from os import path
 from pathlib import Path
 from optparse import OptionParser
-import glob
+import json
 import time
 import scipy.ndimage as ndimage
 import xarray as xr
@@ -60,6 +60,8 @@ def main():
                       action="store_true", help="Enable to create files with the full datestring in the output filenames.", default=False)
     parser.add_option("--write-json", "--write-json", dest="write_json", action="store_true",
                       help="Enable to output JSON file with references to the latest and archived image files.", default=False)
+    parser.add_option("--smaller_images", "--smaller_images", dest='smaller_images', action="store_true",
+                      help="Reduce the output resolution of the generated images.", default=False)
 
     (opt, arg) = parser.parse_args()
 
@@ -102,17 +104,19 @@ def main():
     ds = ds.sel(time=date)  # This grabs the proper date for analysis.
     uadata, stations = getData(station_file, dt, hour)
     print('Working on maps:')
+    generated_maps = []
     for level in levels:
         print("    Processing {}...".format(level))
         data = generateData(uadata, stations, level)
-        uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date,
-               opt.compress, opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames)
+        uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress,
+               opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images)
+        generated_maps.append(map)
     end = time.time()
     total_time = round(end-start, 2)
 
     # Completed the image production, now check for JSON output and create if needed.
     if (opt.write_json):
-        json = get_filenames_json(path_root)
+        json = generate_json_data(dt, levels, save_dir)
     print('Process Complete..... Total time = {}s'.format(total_time))
 
 
@@ -272,7 +276,7 @@ def mapbackground():
     return ax
 
 
-def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames):
+def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames, smaller_images):
 
     custom_layout = StationPlotLayout()
     custom_layout.add_barb('eastward_wind', 'northward_wind', units='knots')
@@ -369,7 +373,12 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
                               central_latitude=90., globe=globe,
                               true_scale_latitude=60)
     # Plot the image
-    fig = plt.figure(figsize=(30, 30))
+    if (smaller_images is True):
+        # At DPI = 255 the result is a 3,060 x 3,060 image.
+        fig = plt.figure(figsize=(12, 12))
+    else:
+        # At DPI = 255 the result is a 7,650 x 7,650 image.
+        fig = plt.figure(figsize=(30, 30))
     ax = fig.add_subplot(1, 1, 1, projection=proj)
     state_boundaries = feat.NaturalEarthFeature(category='cultural',
                                                 name='admin_1_states_provinces_lines',
@@ -540,10 +549,24 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
     # plt.show()
 
 
-def get_filenames_json(path_root):
-    working_dir = "${path_root}/maps"
-    files = [f for f in glob.glob(
-        '[0-9]{3}mb_([0-9]{12}z)\.png') if path.isfile(f)]
+def generate_json_data(dt, levels, save_dir):
+    # Create
+    runs_back = 4
+    new_maps = []
+    for i in range(0, runs_back):
+        date = dt - timedelta(12 * i)
+        map_collection = {}
+        for level in levels:
+            fname = '{0:%Y%m%d_%H}Z_'.format(
+                date) + str(level) + 'mb.png'.format(date)
+            map_collection[level] = fname
+        new_maps.append(map_collection)
+    output = {
+        "updated": '{0:%Y%m%d_%H}Z'.format(dt),
+        "maps": new_maps
+    }
+    with open(save_dir + "/latest_maps.json", "w") as f:
+        json.dump(output, f)
 
 
 if __name__ == '__main__':

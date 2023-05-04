@@ -552,7 +552,7 @@ def generate_json_data(dt, levels, save_dir):
     runs_back = 4
     new_maps = []
     for i in range(0, runs_back):
-        date = dt - timedelta(12 * i)
+        date = dt - timedelta(hours=(12 * i))
         map_collection = {}
         for level in levels:
             fname = '{0:%Y%m%d_%H}Z_'.format(

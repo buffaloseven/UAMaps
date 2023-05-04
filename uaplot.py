@@ -60,7 +60,7 @@ def main():
                       action="store_true", help="Enable to create files with the full datestring in the output filenames.", default=False)
     parser.add_option("--write-json", "--write-json", dest="write_json", action="store_true",
                       help="Enable to output JSON file with references to the latest and archived image files.", default=False)
-    parser.add_option("--smaller_images", "--smaller_images", dest='smaller_images', action="store_true",
+    parser.add_option("--smaller-images", "--smaller-images", dest='smaller_images', action="store_true",
                       help="Reduce the output resolution of the generated images.", default=False)
 
     (opt, arg) = parser.parse_args()

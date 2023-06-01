@@ -64,6 +64,8 @@ def main():
                       help="Reduce the output resolution of the generated images.", default=False)
     parser.add_option("--combine-pdf", "--combine-pdf", dest='combine_pdf', action="store_true",
                       help="Create a PDF containing all the generated images.", default=False)
+    parser.add_option("--add-watermark", "--add-watermark", dest='add_watermark', type="str",
+                      help="Add a watermark to the NE corner of the map.", default="0")
 
     (opt, arg) = parser.parse_args()
 
@@ -111,7 +113,7 @@ def main():
         print("    Processing {}...".format(level))
         data = generateData(uadata, stations, level)
         map = uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress,
-                     opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images)
+                     opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images, opt.add_watermark)
         generated_maps.append(map)
     end = time.time()
     total_time = round(end-start, 2)
@@ -293,7 +295,7 @@ def mapbackground():
     return ax
 
 
-def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames, smaller_images):
+def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames, smaller_images, watermark):
 
     custom_layout = StationPlotLayout()
     custom_layout.add_barb('eastward_wind', 'northward_wind', units='knots')
@@ -534,6 +536,13 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
     text = AnchoredText(str(level) + 'mb Wind, Heights, ' + temps +
                         ' Valid: {0:%Y-%m-%d} {0:%H}:00 UTC'.format(date), loc=3, frameon=True, prop=dict(fontsize=30))
     ax.add_artist(text)
+    if (watermark != "0"):
+        try:
+            logo = plt.imread(watermark)
+            ax.figure.figimage(logo, 40, 40, alpha=.15, zorder=1)
+        except:
+            print("Error plotting watermark.")
+
     plt.tight_layout()
     if long_filenames == True:
         save_fname = '{0:%Y%m%d_%H}Z_'.format(

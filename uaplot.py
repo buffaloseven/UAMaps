@@ -70,6 +70,8 @@ def main():
                       help="X coordinate of the watermark image. Default 0.", default=0)
     parser.add_option("--watermark-y", "--watermark-y", dest='watermark_y', type="int",
                       help="Y coordinate of the watermark image. Default 0.", default=0)
+    parser.add_option("--watermark-alpha", "--watermark-alpha", dest='watermark_alpha', type="float",
+                      help="Set the alpha value of the watermark image from 0 to 1. Default 1.", default=1.0)
 
     (opt, arg) = parser.parse_args()
 
@@ -117,7 +119,7 @@ def main():
         print("    Processing {}...".format(level))
         data = generateData(uadata, stations, level)
         map = uaPlot(data, level, dt, save_dir, ds, hour, td_option, te_option, opt.date, opt.compress,
-                     opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images, opt.add_watermark, opt.watermark_x, opt.watermark_y)
+                     opt.png_colours, opt.thumbnails, opt.thumbnail_size, opt.long_filenames, opt.smaller_images, opt.add_watermark, opt.watermark_x, opt.watermark_y, opt.watermark_alpha)
         generated_maps.append(map)
     end = time.time()
     total_time = round(end-start, 2)
@@ -299,7 +301,7 @@ def mapbackground():
     return ax
 
 
-def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames, smaller_images, watermark, watermark_x, watermark_y):
+def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_option, image_compress, png_colours, thumbnails, thumbnail_size, long_filenames, smaller_images, watermark, watermark_x, watermark_y, watermark_alpha):
 
     custom_layout = StationPlotLayout()
     custom_layout.add_barb('eastward_wind', 'northward_wind', units='knots')
@@ -544,7 +546,7 @@ def uaPlot(data, level, date, save_dir, ds, hour, td_option, te_option, date_opt
         try:
             logo = plt.imread(watermark)
             ax.figure.figimage(logo, watermark_x,
-                               watermark_y, alpha=.5, zorder=1)
+                               watermark_y, alpha=watermark_alpha, zorder=1)
         except:
             print("Error plotting watermark.")
 
